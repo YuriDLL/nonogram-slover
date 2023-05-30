@@ -1,4 +1,4 @@
-from typing import List
+from typing import List, Optional
 from enum import IntEnum
 
 
@@ -79,18 +79,68 @@ def fill_side(field: List[list], numbers):
     return field_complite
 
 
-def append_number(row: list, number: Mark, start_index: int, shift: int) -> list:
-    new_row = []
-    for index, number in enumerate(row):
-        pass
-    return 0
+def append_number(row: list, number: int, start_index: int) -> Optional[list]:
+    if start_index + number > len(row):
+        return None
+    new_row = row.copy()
+    for index in range(start_index, start_index + number):
+        if new_row[index] == Mark.CROSS:
+            return None
+    if start_index + number < len(new_row):
+        if new_row[start_index + number] != Mark.FILL:
+            new_row[start_index + number] = Mark.CROSS
+        else:
+            return None
+    for fill_index in range(start_index, start_index + number):
+        new_row[fill_index] = Mark.FILL
+    return new_row
+
+
+def fill_cross_end(row: list, start: int) -> bool:
+    valid_row = True
+    for index in range(start, len(row)):
+        if row[index] == Mark.FILL:
+            valid_row = False
+        row[index] = Mark.CROSS
+    return valid_row
+
+
+def append_numbers(rows: list, current_row: list, numbers: list, start_index: int):
+    numbers = numbers.copy()
+    current_row = current_row.copy()
+    current_number = numbers.pop(0)
+    need_cross_end = len(numbers) == 0
+    for shift in range(start_index, len(current_row) - current_number + 1):
+        next_row = append_number(current_row, current_number, shift)
+        if next_row is not None:
+            if need_cross_end:
+                if fill_cross_end(next_row, shift + current_number + 1):
+                    rows.append(next_row)
+            else:
+                append_numbers(rows, next_row, numbers, shift + current_number + 1)
+        if current_row[shift] == Mark.FILL:
+            return
+        else:
+            current_row[shift] = Mark.CROSS
 
 
 def fill_row_brute(row: list, numbers: list) -> list:
-    new_rows = []
-    for number in numbers:
-        pass
-    return 0
+    assert min(numbers) > 0
+    possible_rows: list = []
+    new_row = row.copy()
+    append_numbers(possible_rows, row, numbers, 0)
+    if possible_rows:
+        for cell_index in range(len(row)):
+            all_cells_equal = True
+            cell_mark = possible_rows[0][cell_index]
+            for possible_row in possible_rows[1:]:
+                if possible_row[cell_index] != cell_mark:
+                    all_cells_equal = False
+            if all_cells_equal:
+                new_row[cell_index] = cell_mark
+            else:
+                new_row[cell_index] = row[cell_index]
+    return new_row
 
 
 def slove(numbers):

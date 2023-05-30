@@ -1,10 +1,8 @@
-from nonogram_slover import fill_side, Mark
+from nonogram_slover import fill_row_brute, Mark
 
 
 def assert_row(row, numbers, ans):
-    field = [row]
-    fill_side(field, [numbers])
-    assert field[0] == ans
+    assert fill_row_brute(row, numbers) == ans
 
 
 def test_unrecognized():
